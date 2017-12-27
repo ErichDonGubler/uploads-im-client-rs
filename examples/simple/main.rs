@@ -31,4 +31,5 @@ fn run() -> Result<(), Error> {
         .apply()?;
 
     uploads_im_client::upload_with_default_options(&options.upload_path_string)
+    // TODO: Maybe try opening the URL?
 }
