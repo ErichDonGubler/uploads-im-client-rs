@@ -8,11 +8,11 @@ extern crate reqwest;
 use failure::Error;
 use std::path::Path;
 
-const DEFAULT_HOST: &str = "uploads.im";
+pub const DEFAULT_HOST: &str = "uploads.im";
 
 #[derive(Builder, Clone, Debug)]
 pub struct UploadOptions {
-    host: String,
+    pub host: String,
 }
 
 impl Default for UploadOptions {
