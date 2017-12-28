@@ -185,10 +185,6 @@ impl TryFrom<RawUploadResponse> for UploadedImage {
     }
 }
 
-pub fn upload_with_default_options<P: AsRef<Path>>(file_path: P) -> Result<UploadedImage, UploadError> {
-    upload(file_path, &UploadOptions::default())
-}
-
 #[derive(Debug, Fail)]
 pub enum UploadRequestURLBuildError {
     #[fail(display = "URL params serialization failed")]
@@ -311,4 +307,8 @@ pub fn upload<P: AsRef<Path>>(file_path: P, options: &UploadOptions) -> Result<U
     let uploaded_image = UploadedImage::try_from(raw_upload_response)?;
 
     Ok(uploaded_image)
+}
+
+pub fn upload_with_default_options<P: AsRef<Path>>(file_path: P) -> Result<UploadedImage, UploadError> {
+    upload(file_path, &UploadOptions::default())
 }
