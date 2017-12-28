@@ -75,7 +75,7 @@ enum RawUploadResponse {
         status_txt: String
     },
     Success {
-        data: RawUploadResponseData
+        data: Box<RawUploadResponseData>
     },
 }
 
@@ -84,7 +84,7 @@ fn parse_status_code_string<'de, D: serde::Deserializer<'de>>(deserializer: D) -
     StatusCode::try_from(status_code_number as u16)
         .map_err(|_| {
             D::Error::invalid_value(
-                Unexpected::Unsigned(status_code_number as u64),
+                Unexpected::Unsigned(u64::from(status_code_number)),
                 &"valid HTTP status code"
             )
         })
@@ -146,8 +146,9 @@ impl TryFrom<RawUploadResponse> for UploadedImage {
                     status_text: status_txt,
                 })
             },
-            RawUploadResponse::Success {
-                data: RawUploadResponseData {
+            RawUploadResponse::Success { data } => {
+                let d = *data;
+                let RawUploadResponseData {
                     img_name,
                     img_url,
                     img_view,
@@ -157,26 +158,28 @@ impl TryFrom<RawUploadResponse> for UploadedImage {
                     thumb_height,
                     thumb_width,
                     resized,
-                }
-            } => Ok(UploadedImage {
-                name: img_name,
-                full_size: ImageReference {
-                    url: img_url,
-                    dimensions: ImageDimension {
-                        height: img_height,
-                        width: img_width
-                    }
-                },
-                thumbnail: ImageReference {
-                    url: thumb_url,
-                    dimensions: ImageDimension {
-                        height: thumb_height,
-                        width: thumb_width
-                    }
-                },
-                view_url: img_view,
-                was_resized: resized,
-            })
+                } = d;
+
+                Ok(UploadedImage {
+                    name: img_name,
+                    full_size: ImageReference {
+                        url: img_url,
+                        dimensions: ImageDimension {
+                            height: img_height,
+                            width: img_width
+                        }
+                    },
+                    thumbnail: ImageReference {
+                        url: thumb_url,
+                        dimensions: ImageDimension {
+                            height: thumb_height,
+                            width: thumb_width
+                        }
+                    },
+                    view_url: img_view,
+                    was_resized: resized,
+                })
+            }
         }
     }
 }

@@ -13,7 +13,7 @@ use failure::Error;
 fn main() {
     if let Err(e) = run() {
         eprintln!("error: {}", e);
-        if let Ok(_) = std::env::var("RUST_BACKTRACE") {
+        if std::env::var("RUST_BACKTRACE").is_ok() {
             eprintln!("{}", e.backtrace());
         }
         for cause in e.causes().skip(1) {
