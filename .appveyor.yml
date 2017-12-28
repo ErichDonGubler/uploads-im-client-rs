@@ -29,8 +29,10 @@ environment:
       CHANNEL: nightly
     - TARGET: x86_64-pc-windows-msvc
       CHANNEL: nightly
-    allow_failures:
-      - CHANNEL: nightly
+
+matrix:
+  allow_failures:
+    - CHANNEL: nightly
 
 install:
   - curl -sSf -o rustup-init.exe https://win.rustup.rs
