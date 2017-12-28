@@ -58,7 +58,6 @@ pub struct UploadedImage {
     pub view_url: Url,
     pub thumbnail: ImageReference<ThumbnailDimension>,
     pub was_resized: bool,
-    pub delete_key: String,
 }
 
 #[derive(Debug, Clone)]
@@ -108,7 +107,6 @@ struct RawUploadResponseData {
     thumb_width: ThumbnailDimension,
     #[serde(deserialize_with = "parse_bool_number_string")]
     resized: bool,
-    delete_key: String,
 }
 
 fn parse_u64_string<'de, D: Deserializer<'de>>(deserializer: D) -> Result<u64, D::Error> {
@@ -159,7 +157,6 @@ impl TryFrom<RawUploadResponse> for UploadedImage {
                     thumb_height,
                     thumb_width,
                     resized,
-                    delete_key,
                 }
             } => Ok(UploadedImage {
                 name: img_name,
@@ -179,7 +176,6 @@ impl TryFrom<RawUploadResponse> for UploadedImage {
                 },
                 view_url: img_view,
                 was_resized: resized,
-                delete_key,
             })
         }
     }
