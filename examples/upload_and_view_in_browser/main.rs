@@ -32,8 +32,7 @@ fn run() -> Result<(), Error> {
     struct CommandLineOptions {
         #[structopt(short = "l", long = "verbosity", default_value = "warn")]
         log_level: log::LevelFilter,
-        #[structopt(short = "i", long = "input")]
-        upload_path_string: String,
+        #[structopt(short = "i", long = "input")] upload_path_string: String,
     }
 
     let options = CommandLineOptions::from_args();
@@ -43,7 +42,8 @@ fn run() -> Result<(), Error> {
         .chain(std::io::stdout())
         .apply()?;
 
-    let uploaded_image = uploads_im_client::upload_with_default_options(&options.upload_path_string)?;
+    let uploaded_image =
+        uploads_im_client::upload_with_default_options(&options.upload_path_string)?;
 
     info!("uploaded_image: {:#?}", uploaded_image);
 

@@ -50,7 +50,7 @@ impl Default for UploadOptions {
 #[derive(Debug, Clone)]
 pub struct ImageReference<Dimension> {
     pub dimensions: ImageDimension<Dimension>,
-    pub url: Url
+    pub url: Url,
 }
 
 #[derive(Debug, Clone)]
@@ -65,50 +65,44 @@ pub struct UploadedImage {
 #[derive(Debug, Clone)]
 pub struct ImageDimension<T> {
     height: T,
-    width: T
+    width: T,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(untagged)]
 enum RawUploadResponse {
     Failure {
-        #[serde(deserialize_with = "parse_status_code_string")]
-        status_code: StatusCode,
-        status_txt: String
+        #[serde(deserialize_with = "parse_status_code_string")] status_code: StatusCode,
+        status_txt: String,
     },
     Success {
-        data: Box<RawUploadResponseData>
+        data: Box<RawUploadResponseData>,
     },
 }
 
-fn parse_status_code_string<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<StatusCode, D::Error> {
+fn parse_status_code_string<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<StatusCode, D::Error> {
     let status_code_number = u16::deserialize(deserializer)?;
-    StatusCode::try_from(status_code_number as u16)
-        .map_err(|_| {
-            D::Error::invalid_value(
-                Unexpected::Unsigned(u64::from(status_code_number)),
-                &"valid HTTP status code"
-            )
-        })
+    StatusCode::try_from(status_code_number as u16).map_err(|_| {
+        D::Error::invalid_value(
+            Unexpected::Unsigned(u64::from(status_code_number)),
+            &"valid HTTP status code",
+        )
+    })
 }
 
 #[derive(Debug, Clone, Deserialize)]
 struct RawUploadResponseData {
     img_name: String,
-    #[serde(with = "url_serde")]
-    img_url: Url,
-    #[serde(with = "url_serde")]
-    img_view: Url,
-    #[serde(deserialize_with = "parse_u64_string")]
-    img_height: FullSizeDimension,
-    #[serde(deserialize_with = "parse_u64_string")]
-    img_width: FullSizeDimension,
-    #[serde(with = "url_serde")]
-    thumb_url: Url,
+    #[serde(with = "url_serde")] img_url: Url,
+    #[serde(with = "url_serde")] img_view: Url,
+    #[serde(deserialize_with = "parse_u64_string")] img_height: FullSizeDimension,
+    #[serde(deserialize_with = "parse_u64_string")] img_width: FullSizeDimension,
+    #[serde(with = "url_serde")] thumb_url: Url,
     thumb_height: ThumbnailDimension,
     thumb_width: ThumbnailDimension,
-    #[serde(deserialize_with = "parse_bool_number_string")]
-    resized: bool,
+    #[serde(deserialize_with = "parse_bool_number_string")] resized: bool,
 }
 
 fn parse_u64_string<'de, D: Deserializer<'de>>(deserializer: D) -> Result<u64, D::Error> {
@@ -130,7 +124,10 @@ fn parse_bool_number_string<'de, D: Deserializer<'de>>(deserializer: D) -> Resul
         1 => true,
         _ => {
             let unexpected = Unexpected::Unsigned(parsed_number);
-            Err(D::Error::invalid_value(unexpected, &"boolean integral value"))?
+            Err(D::Error::invalid_value(
+                unexpected,
+                &"boolean integral value",
+            ))?
         }
     })
 }
@@ -142,12 +139,10 @@ impl TryFrom<RawUploadResponse> for UploadedImage {
             RawUploadResponse::Failure {
                 status_code,
                 status_txt,
-            } => {
-                Err(UploadError::ResponseReturnedFailure {
-                    status_code,
-                    status_text: status_txt,
-                })
-            },
+            } => Err(UploadError::ResponseReturnedFailure {
+                status_code,
+                status_text: status_txt,
+            }),
             RawUploadResponse::Success { data } => {
                 let d = *data;
                 let RawUploadResponseData {
@@ -168,15 +163,15 @@ impl TryFrom<RawUploadResponse> for UploadedImage {
                         url: img_url,
                         dimensions: ImageDimension {
                             height: img_height,
-                            width: img_width
-                        }
+                            width: img_width,
+                        },
                     },
                     thumbnail: ImageReference {
                         url: thumb_url,
                         dimensions: ImageDimension {
                             height: thumb_height,
-                            width: thumb_width
-                        }
+                            width: thumb_width,
+                        },
                     },
                     view_url: img_view,
                     was_resized: resized,
@@ -190,8 +185,7 @@ impl TryFrom<RawUploadResponse> for UploadedImage {
 pub enum UploadRequestURLBuildError {
     #[fail(display = "URL params serialization failed")]
     URLParamsBuildingFailed(#[cause] serde_urlencoded::ser::Error),
-    #[fail(display = "URL validation failed")]
-    URLValidationFailed(#[cause] url::ParseError),
+    #[fail(display = "URL validation failed")] URLValidationFailed(#[cause] url::ParseError),
 }
 
 impl From<url::ParseError> for UploadRequestURLBuildError {
@@ -210,15 +204,13 @@ impl From<serde_urlencoded::ser::Error> for UploadRequestURLBuildError {
 pub enum UploadError {
     #[fail(display = "internal error: failed building upload request")]
     BuildingRequest(#[cause] UploadRequestURLBuildError),
-    #[fail(display = "could not transmit upload request")]
-    SendingRequest(#[cause] reqwest::Error),
+    #[fail(display = "could not transmit upload request")] SendingRequest(#[cause] reqwest::Error),
     #[fail(display = "the server returned HTTP error code {} (\"{}\")", status_code, status_text)]
     ResponseReturnedFailure {
         status_code: reqwest::StatusCode,
         status_text: String,
     },
-    #[fail(display = "cannot access file to upload")]
-    Io(#[cause] std::io::Error),
+    #[fail(display = "cannot access file to upload")] Io(#[cause] std::io::Error),
     #[fail(display = "internal error: unable to parse upload response")]
     ParsingResponse(#[cause] serde_json::Error),
 }
@@ -266,21 +258,34 @@ pub fn build_upload_url(options: &UploadOptions) -> Result<Url, UploadRequestURL
             let params_tuple = generate_string_keyed_pairs![
                 resize_width,
                 family_unsafe,
-                ("thumb_width", options.thumbnail_width.map(|x| x.to_string()))
+                (
+                    "thumb_width",
+                    options.thumbnail_width.map(|x| x.to_string())
+                )
             ];
 
             serde_urlencoded::to_string(params_tuple)?
         };
         let initial_params_separator = if params.is_empty() { "" } else { "&" };
 
-        format!("http://{}/api?upload{}{}", options.host, initial_params_separator, params)
+        format!(
+            "http://{}/api?upload{}{}",
+            options.host, initial_params_separator, params
+        )
     };
 
     Ok(Url::parse(&url_string)?)
 }
 
-pub fn upload<P: AsRef<Path>>(file_path: P, options: &UploadOptions) -> Result<UploadedImage, UploadError> {
-    info!("Beginning upload of file \"{}\" with {:#?}", file_path.as_ref().display(), options);
+pub fn upload<P: AsRef<Path>>(
+    file_path: P,
+    options: &UploadOptions,
+) -> Result<UploadedImage, UploadError> {
+    info!(
+        "Beginning upload of file \"{}\" with {:#?}",
+        file_path.as_ref().display(),
+        options
+    );
 
     let endpoint_url = build_upload_url(options)?;
 
@@ -310,6 +315,8 @@ pub fn upload<P: AsRef<Path>>(file_path: P, options: &UploadOptions) -> Result<U
     Ok(uploaded_image)
 }
 
-pub fn upload_with_default_options<P: AsRef<Path>>(file_path: P) -> Result<UploadedImage, UploadError> {
+pub fn upload_with_default_options<P: AsRef<Path>>(
+    file_path: P,
+) -> Result<UploadedImage, UploadError> {
     upload(file_path, &UploadOptions::default())
 }
