@@ -219,7 +219,7 @@ pub enum UploadError {
     #[fail(display = "cannot access file to upload")]
     Io(#[cause] std::io::Error),
     #[fail(display = "internal error: unable to parse upload response")]
-    ParsingResponse(#[cause] serde_json::Error)
+    ParsingResponse(#[cause] serde_json::Error),
 }
 
 impl From<UploadRequestURLBuildError> for UploadError {
