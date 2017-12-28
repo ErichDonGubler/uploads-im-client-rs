@@ -1,3 +1,5 @@
+#![deny(missing_docs)]
+
 #[macro_use]
 extern crate derive_builder;
 #[macro_use]
