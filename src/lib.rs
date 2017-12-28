@@ -222,7 +222,8 @@ pub enum UploadRequestURLBuildError {
     #[fail(display = "URL params serialization failed")]
     URLParamsBuildingFailed(#[cause] serde_urlencoded::ser::Error),
     /// Indicates that the built URL failed validation.
-    #[fail(display = "URL validation failed")] URLValidationFailed(#[cause] url::ParseError),
+    #[fail(display = "URL validation failed")]
+    URLValidationFailed(#[cause] url::ParseError),
 }
 
 impl From<url::ParseError> for UploadRequestURLBuildError {
@@ -245,8 +246,9 @@ pub enum UploadError {
     #[fail(display = "failed building upload request")]
     BuildingRequest(#[cause] UploadRequestURLBuildError),
     /// Indicates a upload request transmission error.
-    #[fail(display = "could not transmit upload request")] SendingRequest(#[cause] reqwest::Error),
-    /// Indicaets an error response returned by the upload API.
+    #[fail(display = "could not transmit upload request")]
+    SendingRequest(#[cause] reqwest::Error),
+    /// Indicates an error response returned by the upload API.
     #[fail(display = "the server returned HTTP error code {} (\"{}\")", status_code, status_text)]
     ResponseReturnedFailure {
         /// The status code returned by the server. Note that this code is
@@ -256,7 +258,8 @@ pub enum UploadError {
         status_text: String,
     },
     /// Indicates an error accessing a file for upload.
-    #[fail(display = "cannot access file to upload")] Io(#[cause] std::io::Error),
+    #[fail(display = "cannot access file to upload")]
+    Io(#[cause] std::io::Error),
     /// Indicates an error parsing the response from the upload API.
     #[fail(display = "internal error: unable to parse upload response")]
     ParsingResponse(#[cause] serde_json::Error),
