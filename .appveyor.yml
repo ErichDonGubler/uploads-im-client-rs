@@ -47,10 +47,12 @@ shallow_clone: true
 before_build:
   - rustup install nightly
   - cargo +nightly install clippy
+  - cargo +nightly install rustfmt-nightly
 
 test_script:
   - cargo test
   - cargo +nightly clippy
+  - cargo +nightly fmt -- --write-mode diff
 
 branches:
   only:
