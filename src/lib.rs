@@ -1,3 +1,4 @@
+#![doc(include = "../README.md")]
 #![deny(missing_docs)]
 
 #[macro_use]
@@ -23,16 +24,26 @@ use std::path::Path;
 use try_from::TryFrom;
 use url::Url;
 
+/// The default host that the Uploads.im service uses in production.
 pub const DEFAULT_HOST: &str = "uploads.im";
 
+/// The integral type that thumbnail image dimensions use.
 pub type ThumbnailDimension = u32;
+/// The integral type that full image dimensions use.
 pub type FullSizeDimension = u64;
 
+/// Models options exposed to users of the upload API.
 #[derive(Builder, Clone, Debug)]
 pub struct UploadOptions {
+    /// The domain hosting the Uploads.im service
     pub host: String,
+    /// An optional width to which an uploaded image should be resized to.
     pub resize_width: Option<FullSizeDimension>,
+    /// An optional width to which the thumbnail of an uploaded image should be
+    /// resized to.
     pub thumbnail_width: Option<ThumbnailDimension>,
+    /// An optional flag to mark an uploaded image as "family unsafe", or in
+    /// other words, adult content or NSFW.
     pub family_unsafe: Option<bool>,
 }
 
@@ -47,39 +58,59 @@ impl Default for UploadOptions {
     }
 }
 
+/// An abstract struct that encapsulates an image entry on the Uploads.im site.
 #[derive(Debug, Clone)]
 pub struct ImageReference<Dimension> {
-    pub dimensions: ImageDimension<Dimension>,
+    /// The dimensions of the referred image.
+    pub dimensions: Rectangle<Dimension>,
+    /// The URL through which the referred image can be requested.
     pub url: Url,
 }
 
+/// Represents a completed image upload to Uploads.im.
 #[derive(Debug, Clone)]
 pub struct UploadedImage {
+    /// The name of an uploaded image. This usually does **not** match the name
+    /// of the original uploaded image file. This name is usually an ID value,
+    /// followed by the original extension of the uploaded image. For example,
+    /// `something.jpg` may be renamed to `vwk7b.jpg`.
     pub name: String,
+    /// A reference to the full-size uploaded image.
     pub full_size: ImageReference<FullSizeDimension>,
+    /// A URL to a human-friendly page showing the uploaded image.
     pub view_url: Url,
+    /// A reference to a thumbnail version of the uploaded image.
     pub thumbnail: ImageReference<ThumbnailDimension>,
+    /// Flags whether or not the uploaded image was resized upon upload.
     pub was_resized: bool,
 }
 
+/// An abstract struct that represents a rectangular area.
 #[derive(Debug, Clone)]
-pub struct ImageDimension<T> {
+pub struct Rectangle<T> {
+    /// The height of the rectangle
     height: T,
+    /// The width of the rectangle
     width: T,
 }
 
+/// Represents the possible responses given the upload API.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(untagged)]
 enum RawUploadResponse {
+    /// Represents a upload failure
     Failure {
         #[serde(deserialize_with = "parse_status_code_string")] status_code: StatusCode,
         status_txt: String,
     },
+    /// Represents an upload success
     Success {
-        data: Box<RawUploadResponseData>,
+        /// The data given in response to a successful image upload.
+        data: Box<RawUploadResponseSuccess>,
     },
 }
 
+/// Deserializes an integral number string into an HTTP status code.
 fn parse_status_code_string<'de, D: serde::Deserializer<'de>>(
     deserializer: D,
 ) -> Result<StatusCode, D::Error> {
@@ -92,8 +123,9 @@ fn parse_status_code_string<'de, D: serde::Deserializer<'de>>(
     })
 }
 
+/// Represents a success response for an image uploaded using the upload API.
 #[derive(Debug, Clone, Deserialize)]
-struct RawUploadResponseData {
+struct RawUploadResponseSuccess {
     img_name: String,
     #[serde(with = "url_serde")] img_url: Url,
     #[serde(with = "url_serde")] img_view: Url,
@@ -105,6 +137,7 @@ struct RawUploadResponseData {
     #[serde(deserialize_with = "parse_bool_number_string")] resized: bool,
 }
 
+/// Deserializes an integral string into a `u64`.
 fn parse_u64_string<'de, D: Deserializer<'de>>(deserializer: D) -> Result<u64, D::Error> {
     use serde::Deserialize;
     use std::error::Error as StdError;
@@ -117,6 +150,7 @@ fn parse_u64_string<'de, D: Deserializer<'de>>(deserializer: D) -> Result<u64, D
     }))?
 }
 
+/// Deserializes an integral string into a `bool`.
 fn parse_bool_number_string<'de, D: Deserializer<'de>>(deserializer: D) -> Result<bool, D::Error> {
     let parsed_number = parse_u64_string(deserializer)?;
     Ok(match parsed_number {
@@ -145,7 +179,7 @@ impl TryFrom<RawUploadResponse> for UploadedImage {
             }),
             RawUploadResponse::Success { data } => {
                 let d = *data;
-                let RawUploadResponseData {
+                let RawUploadResponseSuccess {
                     img_name,
                     img_url,
                     img_view,
@@ -161,14 +195,14 @@ impl TryFrom<RawUploadResponse> for UploadedImage {
                     name: img_name,
                     full_size: ImageReference {
                         url: img_url,
-                        dimensions: ImageDimension {
+                        dimensions: Rectangle {
                             height: img_height,
                             width: img_width,
                         },
                     },
                     thumbnail: ImageReference {
                         url: thumb_url,
-                        dimensions: ImageDimension {
+                        dimensions: Rectangle {
                             height: thumb_height,
                             width: thumb_width,
                         },
@@ -181,10 +215,13 @@ impl TryFrom<RawUploadResponse> for UploadedImage {
     }
 }
 
+/// Represents an error that can occur when building an upload API URL.
 #[derive(Debug, Fail)]
 pub enum UploadRequestURLBuildError {
+    /// Indicates that the upload URL could not be built.
     #[fail(display = "URL params serialization failed")]
     URLParamsBuildingFailed(#[cause] serde_urlencoded::ser::Error),
+    /// Indicates that the built URL failed validation.
     #[fail(display = "URL validation failed")] URLValidationFailed(#[cause] url::ParseError),
 }
 
@@ -200,17 +237,27 @@ impl From<serde_urlencoded::ser::Error> for UploadRequestURLBuildError {
     }
 }
 
+/// Represents an error that may occur when building and sending an image
+/// upload request.
 #[derive(Debug, Fail)]
 pub enum UploadError {
-    #[fail(display = "internal error: failed building upload request")]
+    /// Indicates a failure building an upload endpoint URL.
+    #[fail(display = "failed building upload request")]
     BuildingRequest(#[cause] UploadRequestURLBuildError),
+    /// Indicates a upload request transmission error.
     #[fail(display = "could not transmit upload request")] SendingRequest(#[cause] reqwest::Error),
+    /// Indicaets an error response returned by the upload API.
     #[fail(display = "the server returned HTTP error code {} (\"{}\")", status_code, status_text)]
     ResponseReturnedFailure {
+        /// The status code returned by the server. Note that this code is
+        /// contained in the *body* of the response, and not the header.
         status_code: reqwest::StatusCode,
+        /// A string describing the error returned by the API.
         status_text: String,
     },
+    /// Indicates an error accessing a file for upload.
     #[fail(display = "cannot access file to upload")] Io(#[cause] std::io::Error),
+    /// Indicates an error parsing the response from the upload API.
     #[fail(display = "internal error: unable to parse upload response")]
     ParsingResponse(#[cause] serde_json::Error),
 }
@@ -239,6 +286,8 @@ impl From<serde_json::Error> for UploadError {
     }
 }
 
+/// Builds an upload endpoint URL given some `UploadOptions` suitable for a
+/// multipart form upload to Uploads.im.
 pub fn build_upload_url(options: &UploadOptions) -> Result<Url, UploadRequestURLBuildError> {
     let url_string = {
         let params = {
@@ -277,6 +326,8 @@ pub fn build_upload_url(options: &UploadOptions) -> Result<Url, UploadRequestURL
     Ok(Url::parse(&url_string)?)
 }
 
+/// Uploads an image file denoted by `file_path` using the given `options` to
+/// the Uploads.im image upload API.
 pub fn upload<P: AsRef<Path>>(
     file_path: P,
     options: &UploadOptions,
@@ -315,6 +366,8 @@ pub fn upload<P: AsRef<Path>>(
     Ok(uploaded_image)
 }
 
+/// Uploads an image file denoted by `file_path` using default `options` to
+/// the Uploads.im image upload API.
 pub fn upload_with_default_options<P: AsRef<Path>>(
     file_path: P,
 ) -> Result<UploadedImage, UploadError> {
