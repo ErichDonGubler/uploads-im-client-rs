@@ -1,4 +1,3 @@
-#![doc(include = "../README.md")]
 #![deny(missing_docs)]
 
 #[macro_use]
