@@ -9,8 +9,12 @@ matrix:
   allow_failures:
     - rust: nightly
 
+before_script:
+  - cargo +nightly install clippy
+
 script:
   - cargo test
+  - cargo +nightly clippy
 
 git:
   depth: 1

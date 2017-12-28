@@ -42,8 +42,12 @@ install:
 build: false
 shallow_clone: true
 
+before_build:
+  - cargo +nightly install clippy
+
 test_script:
   - cargo test
+  - cargo +nightly clippy
 
 branches:
   only:
