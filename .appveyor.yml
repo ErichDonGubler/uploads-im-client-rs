@@ -1,6 +1,6 @@
 environment:
   global:
-    PROJECT_NAME: adhesion-rs
+    PROJECT_NAME: uploads-im-client-rs
   matrix:
     # Stable channel
     - TARGET: i686-pc-windows-gnu
@@ -29,8 +29,8 @@ environment:
       CHANNEL: nightly
     - TARGET: x86_64-pc-windows-msvc
       CHANNEL: nightly
-  allow_failures:
-    - CHANNEL: nightly
+    allow_failures:
+      - CHANNEL: nightly
 
 install:
   - curl -sSf -o rustup-init.exe https://win.rustup.rs
@@ -43,6 +43,7 @@ build: false
 shallow_clone: true
 
 before_build:
+  - rustup install nightly
   - cargo +nightly install clippy
 
 test_script:

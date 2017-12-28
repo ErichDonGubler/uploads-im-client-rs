@@ -10,6 +10,7 @@ matrix:
     - rust: nightly
 
 before_script:
+  - rustup install nightly
   - cargo +nightly install clippy
 
 script:
