@@ -5,17 +5,36 @@
 <!-- [![crates.io latest published version](https://img.shields.io/crates/v/adhesion.svg)](https://crates.io/crates/adhesion) -->
 <!-- [![docs.rs latest published version](https://docs.rs/adhesion/badge.svg)](https://docs.rs/adhesion) -->
 
-Bindings to the [Uploads.im](http://uploads.im/) [API](http://uploads.im/apidocs).
-
-More details coming soon!
+Bindings to the [Uploads.im](http://uploads.im/) [web API](http://uploads.im/apidocs).
+Upload your images for free with Rust!
 
 ## Overview
 
-TODO
+The Uploads.im API currently has only the `upload` endpoint, which allows anyone
+to upload an image file with no authentication. Here's an example of how to use
+it:
+
+```rust
+extern crate uploads_im_client;
+
+fn main() {
+    let uploaded_image = uploads_im_client::upload_with_default_options("my_image.jpg").expect("successful image upload");
+    println!("Uploaded image! You can now view it at {}", uploaded_image.view_url.to_string());
+}
+```
 
 ## Licensing
 
-TODO
+This project is dual-licensed under either the MIT or Apache 2.0 license. Take
+your pick!
+
+## Contributing
+
+Contributions, feature requests, and bug reports are warmly welcomed! See the
+[contribution guidelines](./CONTRIBUTING.md) for getting started.
+
+See also the [Code of Conduct](./CODE-OF-CONDUCT.md) for more details about
+expectations regarding contributions to this project.
 
 ## Contributors
 
