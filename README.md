@@ -4,8 +4,8 @@
 [![Windows build status](https://ci.appveyor.com/api/projects/status/github/ErichDonGubler/uploads-im-client-rs?svg=true)](https://ci.appveyor.com/project/ErichDonGubler/uploads-im-client-rs)
 <!-- [![crates.io latest published version](https://img.shields.io/crates/v/adhesion.svg)](https://crates.io/crates/adhesion) -->
 <!-- [![docs.rs latest published version](https://docs.rs/adhesion/badge.svg)](https://docs.rs/adhesion) -->
-[![Apache License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Apache License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE-APACHE-2.0.md)
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE-MIT.md)
 
 Bindings to the [Uploads.im](http://uploads.im/) [web API](http://uploads.im/apidocs).
 Upload your images for free with Rust!
