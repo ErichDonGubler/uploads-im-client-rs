@@ -3,7 +3,16 @@ description = "Bindings to the Uploads.im web API"
 authors = ["Erich Gubler <erichdongubler@gmail.com>"]
 name = "uploads-im-client"
 license = "Apache-2.0/MIT"
-version = "0.1.0"
+readme = "README.md"
+version = "0.1.1"
+homepage = "https://github.com/erichdongubler/uploads-im-client-rs"
+documentation = "https://docs.rs/uploads-im-client"
+repository  = "https://github.com/erichdongubler/uploads-im-client-rs"
+
+[badges]
+appveyor = { repository = "erichdongubler/uploads-im-client-rs", branch = "master", service = "github" }
+maintenance = { status = "actively-developed" }
+travis-ci = { repository = "erichdongubler/uploads-im-client-rs", branch = "master" }
 
 [dependencies]
 derive_builder = "0.5.1"
