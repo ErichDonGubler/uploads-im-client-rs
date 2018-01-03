@@ -7,7 +7,7 @@
 //!
 //! # Examples
 //!
-//! ```rust,ignore
+//! ```rust,no_run
 //! extern crate uploads_im_client;
 //!
 //! fn main() {
