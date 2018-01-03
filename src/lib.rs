@@ -1,4 +1,20 @@
 #![deny(missing_docs)]
+//! # Uploads.im Client
+//!
+//! This crate is a thin wrapper that models the Uploads.im web API. Currently,
+//! the only functionality available to Uploads.im users is the `upload`
+//! endpoint.
+//!
+//! # Examples
+//!
+//! ```rust,ignore
+//! extern crate uploads_im_client;
+//!
+//! fn main() {
+//!     let uploaded_image = uploads_im_client::upload_with_default_options("my_image.jpg").expect("successful image upload");
+//!     println!("Uploaded image! You can now view it at {}", uploaded_image.view_url.to_string());
+//! }
+//! ```
 
 #[macro_use]
 extern crate derive_builder;
