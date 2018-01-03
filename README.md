@@ -2,8 +2,8 @@
 
 [![Linux build status](https://travis-ci.org/ErichDonGubler/uploads-im-client-rs.svg)](https://travis-ci.org/ErichDonGubler/uploads-im-client-rs)
 [![Windows build status](https://ci.appveyor.com/api/projects/status/github/ErichDonGubler/uploads-im-client-rs?svg=true)](https://ci.appveyor.com/project/ErichDonGubler/uploads-im-client-rs)
-[![crates.io latest published version](https://img.shields.io/crates/v/uploads_im_client.svg)](https://crates.io/crates/uploads_im_client)
-[![docs.rs latest published version](https://docs.rs/uploads_im_client/badge.svg)](https://docs.rs/uploads_im_client)
+[![crates.io latest published version](https://img.shields.io/crates/v/uploads-im-client.svg)](https://crates.io/crates/uploads-im-client)
+[![docs.rs latest published version](https://docs.rs/uploads-im-client/badge.svg)](https://docs.rs/uploads-im-client)
 [![Apache License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE-APACHE-2.0.md)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE-MIT.md)
 
