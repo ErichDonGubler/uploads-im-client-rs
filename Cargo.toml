@@ -1,6 +1,8 @@
 [package]
+description = "Bindings to the Uploads.im web API"
 authors = ["Erich Gubler <erichdongubler@gmail.com>"]
 name = "uploads-im-client"
+license = "Apache-2.0/MIT"
 version = "0.1.0"
 
 [dependencies]
