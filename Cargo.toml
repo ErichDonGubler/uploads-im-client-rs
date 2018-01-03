@@ -17,9 +17,9 @@ serde_urlencoded = "0.5.1"
 try_from = "0.2.2"
 url = "1.6.0"
 url_serde = "0.2.0"
-webbrowser = "0.2.2"
 
 [dev-dependencies]
 fern = "0.5.1"
 structopt = "0.1.6"
 structopt-derive = "0.1.6"
+webbrowser = "0.2.2"
