@@ -8,6 +8,7 @@ version = "0.1.1"
 homepage = "https://github.com/erichdongubler/uploads-im-client-rs"
 documentation = "https://docs.rs/uploads-im-client"
 repository  = "https://github.com/erichdongubler/uploads-im-client-rs"
+categories = ["web-programming::http-client", "multimedia::images", "api-bindings"]
 
 [badges]
 appveyor = { repository = "erichdongubler/uploads-im-client-rs", branch = "master", service = "github" }
