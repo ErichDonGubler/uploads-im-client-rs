@@ -1,29 +1,54 @@
 language: rust
-
 cache: cargo
-
+env: # required for allow_failures
 rust:
   - stable
   - beta
   - nightly
 
 matrix:
+  fast_finish: true
   allow_failures:
-    - rust: nightly
+    - env: NAME='cargo-travis'
+  include:
+    - rust: nightly-2018-01-12
+      env: # use env so updating versions causes cache invalidation
+        - CLIPPY_VERSION=0.0.209
+      before_script:
+        - rustup component add rustfmt-preview
+        - cargo install clippy --version $CLIPPY_VERSION || echo "clippy already installed"
+      script:
+        - cargo fmt -- --write-mode=diff
+        - cargo clippy -- -D clippy
+    - env: NAME='cargo-travis'
+      sudo: required # travis-ci/travis-ci#9061
+      before_script:
+        - cargo install cargo-update || ehco "cargo-update already installed"
+        - cargo install cargo-travis || echo "cargo-travis already installed"
+        - cargo install-update -a
+      script:
+        - |
+          cargo build    --verbose &&
+          cargo coverage --verbose &&
+          bash <(curl -s https://codecov.io/bash) -s target/kcov
+        - |
+          cargo doc --verbose &&
+          cargo doc-upload
+      addons: # required for kcov
+        apt:
+          packages:
+            - libcurl4-openssl-dev
+            - libelf-dev
+            - libdw-dev
+            - binutils-dev
+            - cmake
 
-before_script:
-  - rustup install nightly
-  - cargo +nightly install clippy --force
-  - cargo +nightly install rustfmt-nightly --force
-
-script:
-  - cargo test
-  - cargo +nightly clippy
-  - cargo +nightly fmt -- --write-mode diff
-
-git:
-  depth: 1
-
-notifications:
-  email:
-    on_success: never
+script: |
+  cargo build --verbose &&
+  cargo test  --verbose &&
+  cargo doc   --verbose
+branches:
+  only:
+    - staging # bors r+
+    - trying  # bors try
+- master
