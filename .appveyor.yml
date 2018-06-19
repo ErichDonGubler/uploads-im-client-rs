@@ -22,17 +22,17 @@ environment:
       CHANNEL: beta
     # Nightly channel
     - TARGET: i686-pc-windows-gnu
-      CHANNEL: nightly
+      CHANNEL: nightly-2018-06-16
     - TARGET: i686-pc-windows-msvc
-      CHANNEL: nightly
+      CHANNEL: nightly-2018-06-16
     - TARGET: x86_64-pc-windows-gnu
-      CHANNEL: nightly
+      CHANNEL: nightly-2018-06-16
     - TARGET: x86_64-pc-windows-msvc
-      CHANNEL: nightly
+      CHANNEL: nightly-2018-06-16
 
 matrix:
   allow_failures:
-    - CHANNEL: nightly
+    - CHANNEL: nightly-2018-06-16
 
 install:
   - curl -sSf -o rustup-init.exe https://win.rustup.rs
@@ -45,8 +45,8 @@ build: false
 shallow_clone: true
 
 before_build:
-  - rustup install nightly
-  - cargo +nightly install clippy --force
+  - rustup install nightly-2018-06-16
+  - cargo +nightly install clippy --version=0.0.209 --force
   - cargo +nightly install rustfmt-nightly --force
 
 test_script:
