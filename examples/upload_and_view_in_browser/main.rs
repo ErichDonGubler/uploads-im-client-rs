@@ -32,7 +32,8 @@ fn run() -> Result<(), Error> {
     struct CommandLineOptions {
         #[structopt(short = "l", long = "verbosity", default_value = "warn")]
         log_level: log::LevelFilter,
-        #[structopt(short = "i", long = "input")] upload_path_string: String,
+        #[structopt(short = "i", long = "input")]
+        upload_path_string: String,
     }
 
     let options = CommandLineOptions::from_args();

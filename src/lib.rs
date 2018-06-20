@@ -115,7 +115,8 @@ pub struct Rectangle<T> {
 enum RawUploadResponse {
     /// Represents a upload failure
     Failure {
-        #[serde(deserialize_with = "parse_status_code_string")] status_code: StatusCode,
+        #[serde(deserialize_with = "parse_status_code_string")]
+        status_code: StatusCode,
         status_txt: String,
     },
     /// Represents an upload success
@@ -142,14 +143,20 @@ fn parse_status_code_string<'de, D: serde::Deserializer<'de>>(
 #[derive(Debug, Clone, Deserialize)]
 struct RawUploadResponseSuccess {
     img_name: String,
-    #[serde(with = "url_serde")] img_url: Url,
-    #[serde(with = "url_serde")] img_view: Url,
-    #[serde(deserialize_with = "parse_u64_string")] img_height: FullSizeDimension,
-    #[serde(deserialize_with = "parse_u64_string")] img_width: FullSizeDimension,
-    #[serde(with = "url_serde")] thumb_url: Url,
+    #[serde(with = "url_serde")]
+    img_url: Url,
+    #[serde(with = "url_serde")]
+    img_view: Url,
+    #[serde(deserialize_with = "parse_u64_string")]
+    img_height: FullSizeDimension,
+    #[serde(deserialize_with = "parse_u64_string")]
+    img_width: FullSizeDimension,
+    #[serde(with = "url_serde")]
+    thumb_url: Url,
     thumb_height: ThumbnailDimension,
     thumb_width: ThumbnailDimension,
-    #[serde(deserialize_with = "parse_bool_number_string")] resized: bool,
+    #[serde(deserialize_with = "parse_bool_number_string")]
+    resized: bool,
 }
 
 /// Deserializes an integral string into a `u64`.
