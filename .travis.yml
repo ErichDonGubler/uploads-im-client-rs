@@ -11,7 +11,6 @@ matrix:
   allow_failures:
     - env: NAME='cargo-travis'
     - rust: nightly
-    - rust: nightly-2018-06-18
   include:
     - rust: nightly-2018-06-18
       env: # use env so updating versions causes cache invalidation
