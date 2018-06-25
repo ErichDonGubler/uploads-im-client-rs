@@ -45,8 +45,8 @@ build: false
 shallow_clone: true
 
 before_build:
-  - rustup install nightly-2018-06-16
-  - cargo +nightly install clippy --version=0.0.209 --force
+  - rustup install nightly-2018-06-18
+  - cargo +nightly install clippy --version=0.0.208 --force
   - cargo +nightly install rustfmt-nightly --force
 
 test_script:
