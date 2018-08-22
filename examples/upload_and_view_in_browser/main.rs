@@ -16,7 +16,7 @@ fn main() {
         if std::env::var("RUST_BACKTRACE").is_ok() {
             eprintln!("{}", e.backtrace());
         }
-        for cause in e.causes().skip(1) {
+        for cause in e.iter_chain().skip(1) {
             eprintln!("caused by: {}", cause);
             if let Some(backtrace) = cause.backtrace() {
                 eprintln!("backtrace: {}", backtrace);
