@@ -1,6 +1,7 @@
 environment:
   global:
     PROJECT_NAME: uploads-im-client-rs
+    # TODO: Clippy version
   matrix:
     # Stable channel
     - TARGET: i686-pc-windows-gnu
@@ -20,19 +21,28 @@ environment:
       CHANNEL: beta
     - TARGET: x86_64-pc-windows-msvc
       CHANNEL: beta
-    # Nightly channel
+      # Nightly channel
     - TARGET: i686-pc-windows-gnu
-      CHANNEL: nightly-2018-06-16
+      CHANNEL: nightly
     - TARGET: i686-pc-windows-msvc
-      CHANNEL: nightly-2018-06-16
+      CHANNEL: nightly
     - TARGET: x86_64-pc-windows-gnu
-      CHANNEL: nightly-2018-06-16
+      CHANNEL: nightly
     - TARGET: x86_64-pc-windows-msvc
-      CHANNEL: nightly-2018-06-16
+      CHANNEL: nightly
+    # Rustfmt
+    - NAME: Rustfmt
+      TARGET: x86_64-pc-windows-msvc
+      CHANNEL: stable
+    # Clippy
+    - NAME: Clippy
+      TARGET: x86_64-pc-windows-msvc
+      CHANNEL: nightly-2018-06-18
+      CLIPPY_VERSION: 0.0.208
 
 matrix:
   allow_failures:
-    - CHANNEL: nightly-2018-06-16
+    - CHANNEL: nightly
 
 install:
   - curl -sSf -o rustup-init.exe https://win.rustup.rs
@@ -44,20 +54,27 @@ install:
 build: false
 shallow_clone: true
 
-before_build:
-  - rustup install nightly-2018-06-18
-  - cargo +nightly install clippy --version=0.0.208 --force
-  - cargo +nightly install rustfmt-nightly --force
-
 test_script:
-  - cargo test
-  - cargo +nightly clippy
-  - cargo +nightly fmt -- --write-mode diff
+  - cargo build --verbose
+  - cargo test --verbose
+  - cargo doc --verbose
 
-branches:
-  only:
-    - master
-    - /^v\d+\.\d+\.\d+.*$/
+for:
+  - matrix:
+      only:
+        - NAME: Rustfmt
+    before_test:
+      - rustup component add rustfmt-preview
+    test_script:
+      - cargo fmt -- --check
+
+  - matrix:
+      only:
+        - NAME: Clippy
+    before_test:
+      - cargo install clippy --version=0.0.208 || echo "Clippy already installed"
+    test_script:
+      - cargo clippy -- -D clippy
 
 cache:
   - target
