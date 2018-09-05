@@ -1,10 +1,15 @@
 language: rust
-cache: cargo
 env: # required for allow_failures
 rust:
   - stable
   - beta
   - nightly
+
+cache:
+  directories:
+    - /home/travis/.cargo
+before_cache:
+  - rm -rf /home/travis/.cargo/registry
 
 matrix:
   fast_finish: true
