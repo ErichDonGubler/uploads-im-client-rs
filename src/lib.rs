@@ -131,7 +131,7 @@ fn parse_status_code_string<'de, D: serde::Deserializer<'de>>(
     deserializer: D,
 ) -> Result<StatusCode, D::Error> {
     let status_code_number = u16::deserialize(deserializer)?;
-    StatusCode::try_from(status_code_number as u16).map_err(|_| {
+    StatusCode::from_u16(status_code_number).map_err(|_| {
         D::Error::invalid_value(
             Unexpected::Unsigned(u64::from(status_code_number)),
             &"valid HTTP status code",
