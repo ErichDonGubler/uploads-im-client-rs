@@ -271,7 +271,11 @@ pub enum UploadError {
     #[fail(display = "could not transmit upload request")]
     SendingRequest(#[cause] reqwest::Error),
     /// Indicates an error response returned by the upload API.
-    #[fail(display = "the server returned HTTP error code {} (\"{}\")", status_code, status_text)]
+    #[fail(
+        display = "the server returned HTTP error code {} (\"{}\")",
+        status_code,
+        status_text
+    )]
     ResponseReturnedFailure {
         /// The status code returned by the server. Note that this code is
         /// contained in the *body* of the response, and not the header.
