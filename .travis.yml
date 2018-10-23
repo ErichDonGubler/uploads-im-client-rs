@@ -5,6 +5,10 @@ rust:
   - stable
   - beta
   - nightly
+os:
+  - linux
+  - macos
+  - windows
 
 matrix:
   fast_finish: true
