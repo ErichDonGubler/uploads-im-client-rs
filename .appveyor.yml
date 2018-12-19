@@ -37,8 +37,7 @@ environment:
     # Clippy
     - NAME: Clippy
       TARGET: x86_64-pc-windows-msvc
-      CHANNEL: nightly-2018-06-18
-      CLIPPY_VERSION: 0.0.208
+      CHANNEL: stable
 
 matrix:
   allow_failures:
@@ -64,7 +63,7 @@ for:
       only:
         - NAME: Rustfmt
     before_test:
-      - rustup component add rustfmt-preview
+      - rustup component add rustfmt
     test_script:
       - cargo fmt -- --check
 
@@ -72,7 +71,7 @@ for:
       only:
         - NAME: Clippy
     before_test:
-      - cargo install clippy --version=0.0.208 || echo "Clippy already installed"
+      - rustup component add clippy
     test_script:
       - cargo clippy -- -D clippy
 
