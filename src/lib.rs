@@ -273,8 +273,7 @@ pub enum UploadError {
     /// Indicates an error response returned by the upload API.
     #[fail(
         display = "the server returned HTTP error code {} (\"{}\")",
-        status_code,
-        status_text
+        status_code, status_text
     )]
     ResponseReturnedFailure {
         /// The status code returned by the server. Note that this code is
