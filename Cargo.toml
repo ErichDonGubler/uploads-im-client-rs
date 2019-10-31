@@ -16,7 +16,7 @@ maintenance = { status = "actively-developed" }
 travis-ci = { repository = "ErichDonGubler/uploads-im-client-rs", branch = "master" }
 
 [dependencies]
-derive_builder = "0.7.0"
+derive_builder = "0.8.1"
 failure = "0.1.1"
 log = "0.4.0"
 reqwest = "0.9.0"
