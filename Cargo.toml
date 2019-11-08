@@ -30,6 +30,6 @@ url_serde = "0.2.0"
 
 [dev-dependencies]
 fern = "0.5.1"
-structopt = "0.2.10"
+structopt = "0.3.4"
 structopt-derive = "0.2.10"
 webbrowser = "0.5.0"
