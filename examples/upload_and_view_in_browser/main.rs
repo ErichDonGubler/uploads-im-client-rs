@@ -1,54 +1,31 @@
-extern crate failure;
-extern crate fern;
-#[macro_use]
-extern crate log;
-extern crate structopt;
-#[macro_use]
-extern crate structopt_derive;
-extern crate uploads_im_client;
-extern crate webbrowser;
+use {
+    anyhow::{anyhow, Error},
+    env_logger::init,
+    itertools::Itertools,
+    log::{error, info},
+    reqwest::Client,
+    std::env::args,
+    tokio::task::spawn_blocking,
+    uploads_im_client::upload_with_default_options,
+};
 
-use failure::Error;
+#[tokio::main]
+async fn main() -> Result<(), Error> {
+    init();
 
-fn main() {
-    if let Err(e) = run() {
-        eprintln!("error: {}", e);
-        if std::env::var("RUST_BACKTRACE").is_ok() {
-            eprintln!("{}", e.backtrace());
-        }
-        for cause in e.iter_chain().skip(1) {
-            eprintln!("caused by: {}", cause);
-            if let Some(backtrace) = cause.backtrace() {
-                eprintln!("backtrace: {}", backtrace);
-            }
-        }
-    }
-}
+    let (upload_path,) = args()
+        .collect_tuple()
+        .ok_or(anyhow!("expected upload path as a single arg"))?;
 
-fn run() -> Result<(), Error> {
-    use structopt::StructOpt;
-
-    #[derive(Debug, StructOpt)]
-    struct CommandLineOptions {
-        #[structopt(short = "l", long = "verbosity", default_value = "warn")]
-        log_level: log::LevelFilter,
-        #[structopt(short = "i", long = "input")]
-        upload_path_string: String,
-    }
-
-    let options = CommandLineOptions::from_args();
-
-    fern::Dispatch::new()
-        .level(options.log_level)
-        .chain(std::io::stdout())
-        .apply()?;
-
-    let uploaded_image =
-        uploads_im_client::upload_with_default_options(&options.upload_path_string)?;
+    let uploaded_image = upload_with_default_options(&mut Client::new(), upload_path.into()).await?;
 
     info!("uploaded_image: {:#?}", uploaded_image);
 
-    webbrowser::open(uploaded_image.view_url.as_str())?;
+    let _ = spawn_blocking(move || {
+        if let Err(e) = webbrowser::open(uploaded_image.view_url.as_str()) {
+            error!("error opening web browser: {}", e);
+        }
+    }).await;
 
     Ok(())
 }

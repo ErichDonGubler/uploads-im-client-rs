@@ -5,39 +5,33 @@
 //! the only functionality available to Uploads.im users is the `upload`
 //! endpoint.
 //!
+//! NOTE: At the time of writing, the Uploads.im service is not accepting new
+//! uploads. You will most likely need to find an alternate provider right now.
+//!
 //! # Examples
 //!
 //! ```rust,no_run
-//! extern crate uploads_im_client;
+//! use {reqwest::Client, uploads_im_client::upload_with_default_options};
 //!
-//! fn main() {
-//!     let uploaded_image = uploads_im_client::upload_with_default_options("my_image.jpg").expect("successful image upload");
-//!     println!("Uploaded image! You can now view it at {}", uploaded_image.view_url.to_string());
+//! #[tokio::main]
+//! async fn main() {
+//!     let uploaded_image = upload_with_default_options(
+//!         &mut Client::new(),
+//!         "my_image.jpg".to_owned().into(),
+//!     ) .await.expect("successful image upload");
+//!     println!("Uploaded image! You can now view it at {}", uploaded_image.view_url.as_str());
 //! }
 //! ```
 
-#[macro_use]
-extern crate derive_builder;
-#[macro_use]
-extern crate failure;
-#[macro_use]
-extern crate log;
-extern crate reqwest;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
-extern crate serde_urlencoded;
-extern crate try_from;
-extern crate url;
-extern crate url_serde;
-
-use reqwest::StatusCode;
-use serde::de::{Error as DeserializationError, Unexpected};
-use serde::{Deserialize, Deserializer};
-use std::path::Path;
-use try_from::TryFrom;
-use url::Url;
+use {
+    derive_builder::Builder,
+    log::{debug, info, trace},
+    reqwest::{multipart::{Form, Part}, Client, StatusCode},
+    serde::{de::{Error as DeserializationError, Unexpected}, Deserialize, Deserializer},
+    std::{convert::TryFrom, path::PathBuf},
+    thiserror::Error,
+    url::Url,
+};
 
 /// The default host that the Uploads.im service uses in production.
 pub const DEFAULT_HOST: &str = "uploads.im";
@@ -143,15 +137,12 @@ fn parse_status_code_string<'de, D: serde::Deserializer<'de>>(
 #[derive(Debug, Clone, Deserialize)]
 struct RawUploadResponseSuccess {
     img_name: String,
-    #[serde(with = "url_serde")]
     img_url: Url,
-    #[serde(with = "url_serde")]
     img_view: Url,
     #[serde(deserialize_with = "parse_u64_string")]
     img_height: FullSizeDimension,
     #[serde(deserialize_with = "parse_u64_string")]
     img_width: FullSizeDimension,
-    #[serde(with = "url_serde")]
     thumb_url: Url,
     thumb_height: ThumbnailDimension,
     thumb_width: ThumbnailDimension,
@@ -161,7 +152,6 @@ struct RawUploadResponseSuccess {
 
 /// Deserializes an integral string into a `u64`.
 fn parse_u64_string<'de, D: Deserializer<'de>>(deserializer: D) -> Result<u64, D::Error> {
-    use serde::Deserialize;
     use std::error::Error as StdError;
     use std::num::ParseIntError;
 
@@ -189,8 +179,8 @@ fn parse_bool_number_string<'de, D: Deserializer<'de>>(deserializer: D) -> Resul
 }
 
 impl TryFrom<RawUploadResponse> for UploadedImage {
-    type Err = UploadError;
-    fn try_from(response: RawUploadResponse) -> Result<Self, Self::Err> {
+    type Error = UploadError;
+    fn try_from(response: RawUploadResponse) -> Result<Self, Self::Error> {
         match response {
             RawUploadResponse::Failure {
                 status_code,
@@ -238,14 +228,14 @@ impl TryFrom<RawUploadResponse> for UploadedImage {
 }
 
 /// Represents an error that can occur when building an upload API URL.
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum UploadRequestURLBuildError {
     /// Indicates that the upload URL could not be built.
-    #[fail(display = "URL params serialization failed")]
-    URLParamsBuildingFailed(#[cause] serde_urlencoded::ser::Error),
+    #[error("URL params serialization failed")]
+    URLParamsBuildingFailed(#[source] serde_urlencoded::ser::Error),
     /// Indicates that the built URL failed validation.
-    #[fail(display = "URL validation failed")]
-    URLValidationFailed(#[cause] url::ParseError),
+    #[error("URL validation failed")]
+    URLValidationFailed(#[source] url::ParseError),
 }
 
 impl From<url::ParseError> for UploadRequestURLBuildError {
@@ -262,56 +252,51 @@ impl From<serde_urlencoded::ser::Error> for UploadRequestURLBuildError {
 
 /// Represents an error that may occur when building and sending an image
 /// upload request.
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum UploadError {
     /// Indicates a failure building an upload endpoint URL.
-    #[fail(display = "failed building upload request")]
-    BuildingRequest(#[cause] UploadRequestURLBuildError),
+    #[error("failed building upload request")]
+    BuildingRequest(
+        #[from]
+        #[source]
+        UploadRequestURLBuildError
+    ),
+    /// Indicates that the provided filename was invalid.
+    #[error("invalid filename \"{}\"", _0.display())]
+    InvalidFilename(PathBuf),
     /// Indicates a upload request transmission error.
-    #[fail(display = "could not transmit upload request")]
-    SendingRequest(#[cause] reqwest::Error),
+    #[error("could not transmit upload request")]
+    SendingRequest(
+        #[from]
+        #[source]
+        reqwest::Error
+    ),
     /// Indicates an error response returned by the upload API.
-    #[fail(
-        display = "the server returned HTTP error code {} (\"{}\")",
+    #[error(
+        "the server returned HTTP error code {} (\"{}\")",
         status_code, status_text
     )]
     ResponseReturnedFailure {
         /// The status code returned by the server. Note that this code is
         /// contained in the *body* of the response, and not the header.
-        status_code: reqwest::StatusCode,
+        status_code: StatusCode,
         /// A string describing the error returned by the API.
         status_text: String,
     },
     /// Indicates an error accessing a file for upload.
-    #[fail(display = "cannot access file to upload")]
-    Io(#[cause] std::io::Error),
+    #[error("cannot access file to upload")]
+    Io(
+        #[from]
+        #[source]
+        std::io::Error
+    ),
     /// Indicates an error parsing the response from the upload API.
-    #[fail(display = "internal error: unable to parse upload response")]
-    ParsingResponse(#[cause] serde_json::Error),
-}
-
-impl From<UploadRequestURLBuildError> for UploadError {
-    fn from(e: UploadRequestURLBuildError) -> Self {
-        UploadError::BuildingRequest(e)
-    }
-}
-
-impl From<reqwest::Error> for UploadError {
-    fn from(e: reqwest::Error) -> Self {
-        UploadError::SendingRequest(e)
-    }
-}
-
-impl From<std::io::Error> for UploadError {
-    fn from(e: std::io::Error) -> Self {
-        UploadError::Io(e)
-    }
-}
-
-impl From<serde_json::Error> for UploadError {
-    fn from(e: serde_json::Error) -> Self {
-        UploadError::ParsingResponse(e)
-    }
+    #[error("internal error: unable to parse upload response")]
+    ParsingResponse(
+        #[from]
+        #[source]
+        serde_json::Error
+    ),
 }
 
 /// Builds an upload endpoint URL given some `UploadOptions` suitable for a
@@ -325,7 +310,6 @@ pub fn build_upload_url(options: &UploadOptions) -> Result<Url, UploadRequestURL
                 ..
             } = options;
 
-            use std::string::ToString;
             macro_rules! generate_string_keyed_pairs {
                 ($($arg: tt),*) => { [$(generate_string_keyed_pairs!(@inside $arg)),*] };
                 (@inside $e: ident) => { (stringify!($e), $e.map(|x| x.to_string())) };
@@ -356,32 +340,37 @@ pub fn build_upload_url(options: &UploadOptions) -> Result<Url, UploadRequestURL
 
 /// Uploads an image file denoted by `file_path` using the given `options` to
 /// the Uploads.im image upload API.
-pub fn upload<P: AsRef<Path>>(
-    file_path: P,
+pub async fn upload(
+    client: &mut Client,
+    file_path: PathBuf,
     options: &UploadOptions,
 ) -> Result<UploadedImage, UploadError> {
     info!(
         "Beginning upload of file \"{}\" with {:#?}",
-        file_path.as_ref().display(),
+        file_path.display(),
         options
     );
+
+    let file_name = file_path
+        .file_name()
+        .and_then(|n| n.to_str().map(ToOwned::to_owned))
+        .ok_or_else(|| UploadError::InvalidFilename(file_path))?;
 
     let endpoint_url = build_upload_url(options)?;
 
     debug!("Upload URL: {}", endpoint_url.as_str());
-
-    let form = reqwest::multipart::Form::new().file("fileupload", file_path)?;
+    let form = Form::new().part("fileupload", Part::stream("asdf").file_name(file_name));
 
     trace!("Request built, sending now...");
 
-    let mut response = reqwest::Client::new()
+    let response = client
         .post(endpoint_url.as_str())
         .multipart(form)
-        .send()?;
+        .send().await?;
 
     debug!("Got upload response: {:#?}", response);
 
-    let response_body_text = response.text()?;
+    let response_body_text = response.text().await?;
 
     debug!("Upload response data: {:#?}", response_body_text);
 
@@ -396,8 +385,9 @@ pub fn upload<P: AsRef<Path>>(
 
 /// Uploads an image file denoted by `file_path` using default `options` to
 /// the Uploads.im image upload API.
-pub fn upload_with_default_options<P: AsRef<Path>>(
-    file_path: P,
+pub async fn upload_with_default_options(
+    client: &mut Client,
+    file_path: PathBuf,
 ) -> Result<UploadedImage, UploadError> {
-    upload(file_path, &UploadOptions::default())
+    upload(client, file_path, &UploadOptions::default()).await
 }
