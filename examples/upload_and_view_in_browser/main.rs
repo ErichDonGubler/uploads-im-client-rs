@@ -17,7 +17,8 @@ async fn main() -> Result<(), Error> {
         .collect_tuple()
         .ok_or(anyhow!("expected upload path as a single arg"))?;
 
-    let uploaded_image = upload_with_default_options(&mut Client::new(), upload_path.into()).await?;
+    let uploaded_image =
+        upload_with_default_options(&mut Client::new(), upload_path.into()).await?;
 
     info!("uploaded_image: {:#?}", uploaded_image);
 
@@ -25,7 +26,8 @@ async fn main() -> Result<(), Error> {
         if let Err(e) = webbrowser::open(uploaded_image.view_url.as_str()) {
             error!("error opening web browser: {}", e);
         }
-    }).await;
+    })
+    .await;
 
     Ok(())
 }

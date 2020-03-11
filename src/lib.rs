@@ -26,8 +26,14 @@
 use {
     derive_builder::Builder,
     log::{debug, info, trace},
-    reqwest::{multipart::{Form, Part}, Client, StatusCode},
-    serde::{de::{Error as DeserializationError, Unexpected}, Deserialize, Deserializer},
+    reqwest::{
+        multipart::{Form, Part},
+        Client, StatusCode,
+    },
+    serde::{
+        de::{Error as DeserializationError, Unexpected},
+        Deserialize, Deserializer,
+    },
     std::{convert::TryFrom, path::PathBuf},
     thiserror::Error,
     url::Url,
@@ -259,7 +265,7 @@ pub enum UploadError {
     BuildingRequest(
         #[from]
         #[source]
-        UploadRequestURLBuildError
+        UploadRequestURLBuildError,
     ),
     /// Indicates that the provided filename was invalid.
     #[error("invalid filename \"{}\"", _0.display())]
@@ -269,12 +275,13 @@ pub enum UploadError {
     SendingRequest(
         #[from]
         #[source]
-        reqwest::Error
+        reqwest::Error,
     ),
     /// Indicates an error response returned by the upload API.
     #[error(
         "the server returned HTTP error code {} (\"{}\")",
-        status_code, status_text
+        status_code,
+        status_text
     )]
     ResponseReturnedFailure {
         /// The status code returned by the server. Note that this code is
@@ -288,14 +295,14 @@ pub enum UploadError {
     Io(
         #[from]
         #[source]
-        std::io::Error
+        std::io::Error,
     ),
     /// Indicates an error parsing the response from the upload API.
     #[error("internal error: unable to parse upload response")]
     ParsingResponse(
         #[from]
         #[source]
-        serde_json::Error
+        serde_json::Error,
     ),
 }
 
@@ -366,7 +373,8 @@ pub async fn upload(
     let response = client
         .post(endpoint_url.as_str())
         .multipart(form)
-        .send().await?;
+        .send()
+        .await?;
 
     debug!("Got upload response: {:#?}", response);
 
