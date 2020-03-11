@@ -11,6 +11,7 @@
 //! # Examples
 //!
 //! ```rust,no_run
+//! # #![allow(clippy::needless_doctest_main)]
 //! use {reqwest::Client, uploads_im_client::upload_with_default_options};
 //!
 //! #[tokio::main]
@@ -176,10 +177,10 @@ fn parse_bool_number_string<'de, D: Deserializer<'de>>(deserializer: D) -> Resul
         1 => true,
         _ => {
             let unexpected = Unexpected::Unsigned(parsed_number);
-            Err(D::Error::invalid_value(
+            return Err(D::Error::invalid_value(
                 unexpected,
                 &"boolean integral value",
-            ))?
+            ));
         }
     })
 }
